@@ -1280,7 +1280,7 @@ function BarkNotify(text, desp, params = {}) {
             title: text,
             body: desp,
             group: `${BARK_GROUP}`,
-            icon: `${BARK_ICON}`,
+            //icon: `${BARK_ICON}`,
             sound: `${BARK_SOUND}`,
         },
         headers: {
@@ -2084,7 +2084,7 @@ const api = got.extend({
   prefixUrl: 'http://127.0.0.1:5600',
   retry: { limit: 0 },
 });
-getEnvs()
+
 async function getToken() {
   const authConfig = JSON.parse(fs.readFileSync(authFile));
   return authConfig.token;
