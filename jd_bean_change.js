@@ -18,6 +18,7 @@ if ($.isNode() && process.env.BEANCHANGE_BEANDETAILMODE){
 }
 
 const fs = require('fs');
+const CR = require('crypto-js');
 let matchtitle="昨日";
 let yesterday="";
 let TodayDate="";
@@ -121,6 +122,7 @@ let RemainMessage = '\n';
 RemainMessage += "⭕提醒:⭕" + '\n';
 RemainMessage += '【京喜特价金币】京东特价版->我的->金币(可兑换无门槛红包)\n';
 RemainMessage += '【领现金】京东->搜领现金(可微信提现或兑换红包)\n';
+RemainMessage += '【话费积分】京东->充值中心-赚积分兑话费（180天效期）\n';
 RemainMessage += '【东东农场】京东->我的->东东农场,完成可兑换无门槛红包,可用于任意商品\n';
 RemainMessage += '【其他】不同类别红包不能叠加使用，自测';
 
@@ -208,7 +210,7 @@ if ($.isNode()) {
 }
 
 //喜豆查询
-let EnableJxBeans=true;
+let EnableJxBeans=false;
 DisableIndex=strDisableList.findIndex((item) => item === "喜豆查询");
 if(DisableIndex!=-1){
 	console.log("检测到设定关闭喜豆查询");
@@ -716,13 +718,11 @@ async function showMsg() {
 	if (EnableCheckBean) {
 	    if (checkbeanDetailMode == 0) {
 	        ReturnMessage += `【今日京豆】收${$.todayIncomeBean}豆`;
-	        strsummary += `【今日京豆】收${$.todayIncomeBean}豆`;
+	        strsummary += `收${$.todayIncomeBean}豆,`;
 	        if ($.todayOutcomeBean != 0) {
 	            ReturnMessage += `,支${$.todayOutcomeBean}豆`;
-	            strsummary += `,支${$.todayOutcomeBean}豆`;
 	        }
 	        ReturnMessage += `\n`;
-	        strsummary += `\n`;
 	        ReturnMessage += `【昨日京豆】收${$.incomeBean}豆`;
 
 	        if ($.expenseBean != 0) {
@@ -732,15 +732,12 @@ async function showMsg() {
 	    } else {	
 			if (TempBeanCache){
 				ReturnMessage += `【京豆变动】${$.beanCount-$.beanCache}豆(与${matchtitle}${$.CheckTime}比较)`;			
-				strsummary += `【京豆变动】${$.beanCount-$.beanCache}豆(与${matchtitle}${$.CheckTime}比较)`;
-				ReturnMessage += `\n`;
-				strsummary += `\n`;
+				strsummary += `变动${$.beanCount-$.beanCache}豆,`;
+				ReturnMessage += `\n`;				
 			}	
 			else{
-				ReturnMessage += `【京豆变动】未找到缓存,下次出结果统计`;			
-				strsummary += `【京豆变动】未找到缓存,下次出结果统计`;	
+				ReturnMessage += `【京豆变动】未找到缓存,下次出结果统计`;
 				ReturnMessage += `\n`;
-				strsummary += `\n`;
 			}		
 		}
 	}
@@ -748,13 +745,11 @@ async function showMsg() {
 	
 	if ($.beanCount){		
 		ReturnMessage += `【当前京豆】${$.beanCount-$.beanChangeXi}豆(≈${(($.beanCount-$.beanChangeXi)/ 100).toFixed(2)}元)\n`;
-		strsummary+= `【当前京豆】${$.beanCount-$.beanChangeXi}豆(≈${(($.beanCount-$.beanChangeXi)/ 100).toFixed(2)}元)\n`;	
 	} else {
 		if($.levelName || $.JingXiang)
 			ReturnMessage += `【当前京豆】获取失败,接口返回空数据\n`;
 		else{
 			ReturnMessage += `【当前京豆】${$.beanCount-$.beanChangeXi}豆(≈${(($.beanCount-$.beanChangeXi)/ 100).toFixed(2)}元)\n`;
-			strsummary += `【当前京豆】${$.beanCount-$.beanChangeXi}豆(≈${(($.beanCount-$.beanChangeXi)/ 100).toFixed(2)}元)\n`;
 		}			
 	}
 
@@ -774,7 +769,6 @@ async function showMsg() {
 			ReturnMessage += `\n`;
 	    }	    
 	    ReturnMessage += `【当前喜豆】${$.xibeanCount}喜豆(≈${($.xibeanCount/ 100).toFixed(2)}元)\n`;
-	    strsummary += `【当前喜豆】${$.xibeanCount}豆(≈${($.xibeanCount/ 100).toFixed(2)}元)\n`;
 	}
 	
 	if ($.JDtotalcash) {
@@ -848,7 +842,15 @@ async function showMsg() {
 			}
 		}
 	}
-	
+    let dwscore = await dwappinfo();
+    if (dwscore){
+      let dwappex = await dwappexpire();
+      ReturnMessage += `【话费积分】${dwscore}`;
+      if (dwappex){
+        ReturnMessage += `(最近已过期:${dwappex})`;
+      }
+      ReturnMessage += `\n`;
+    }
 	if ($.jdCash) {
 		ReturnMessage += `【其他信息】`;
 		
@@ -866,15 +868,13 @@ async function showMsg() {
 	}
 	ReturnMessage += `🧧🧧🧧红包明细🧧🧧🧧\n`;
 	ReturnMessage += `${$.message}`;
-	strsummary +=`${$.message}`;
-	
+	strsummary+=`红包${$.balance}元`
 	if($.YunFeiQuan){
 		var strTempYF="【免运费券】"+$.YunFeiQuan+"张";
 		if($.YunFeiQuanEndTime)
 			strTempYF+="(有效期至"+$.YunFeiQuanEndTime+")";
 		strTempYF+="\n";
 		ReturnMessage +=strTempYF
-		strsummary +=strTempYF;
 	}
 	if($.YunFeiQuan2){
 		var strTempYF2="【免运费券】"+$.YunFeiQuan2+"张";
@@ -882,7 +882,6 @@ async function showMsg() {
 			strTempYF+="(有效期至"+$.YunFeiQuanEndTime2+")";
 		strTempYF2+="\n";
 		ReturnMessage +=strTempYF2
-		strsummary +=strTempYF2;
 	}
 	
 	if (userIndex2 != -1) {
@@ -917,13 +916,10 @@ async function showMsg() {
 		}else{
 			ReturnMessage=`【账号名称】${$.nickName || $.UserName}\n`+ReturnMessage;
 		}
-		if (TempBaipiao) {
-			strsummary=strSubNotify+TempBaipiao +strsummary;			
+		if (TempBaipiao) {			
 			TempBaipiao = `【⏰商品白嫖活动提醒⏰】\n` + TempBaipiao;
 			ReturnMessage = TempBaipiao + `\n` + ReturnMessage;			
-		} else {
-			strsummary = strSubNotify + strsummary;				
-		}
+		} 
 		
 		ReturnMessage += RemainMessage;
 		
@@ -1347,26 +1343,26 @@ function queryexpirejingdou() {
 function redPacket() {
 	return new Promise(async resolve => {
 		const options = {
-			"url": `https://m.jingxi.com/user/info/QueryUserRedEnvelopesV2?type=1&orgFlag=JD_PinGou_New&page=1&cashRedType=1&redBalanceFlag=1&channel=1&_=${+new Date()}&sceneval=2&g_login_type=1&g_ty=ls`,
+			"url": `https://api.m.jd.com/client.action?functionId=myhongbao_getUsableHongBaoList&body=%7B%22appId%22%3A%22appHongBao%22%2C%22appToken%22%3A%22apphongbao_token%22%2C%22platformId%22%3A%22appHongBao%22%2C%22platformToken%22%3A%22apphongbao_token%22%2C%22platform%22%3A%221%22%2C%22orgType%22%3A%222%22%2C%22country%22%3A%22cn%22%2C%22childActivityId%22%3A%22-1%22%2C%22childActiveName%22%3A%22-1%22%2C%22childActivityTime%22%3A%22-1%22%2C%22childActivityUrl%22%3A%22-1%22%2C%22openId%22%3A%22-1%22%2C%22activityArea%22%3A%22-1%22%2C%22applicantErp%22%3A%22-1%22%2C%22eid%22%3A%22-1%22%2C%22fp%22%3A%22-1%22%2C%22shshshfp%22%3A%22-1%22%2C%22shshshfpa%22%3A%22-1%22%2C%22shshshfpb%22%3A%22-1%22%2C%22jda%22%3A%22-1%22%2C%22activityType%22%3A%221%22%2C%22isRvc%22%3A%22-1%22%2C%22pageClickKey%22%3A%22-1%22%2C%22extend%22%3A%22-1%22%2C%22organization%22%3A%22JD%22%7D&appid=JDReactMyRedEnvelope&client=apple&clientVersion=7.0.0`,
 			"headers": {
-				'Host': 'm.jingxi.com',
+				'Host': 'api.m.jd.com',
 				'Accept': '*/*',
 				'Connection': 'keep-alive',
 				'Accept-Language': 'zh-cn',
-				'Referer': 'https://st.jingxi.com/my/redpacket.shtml?newPg=App&jxsid=16156262265849285961',
+				'Referer': 'https://h5.m.jd.com/',
 				'Accept-Encoding': 'gzip, deflate, br',
 				"Cookie": cookie,
 				'User-Agent': $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
 			}
 		}
 		$.get(options, (err, resp, data) => {
-			try {
+			try {				
 				if (err) {
 					console.log(`${JSON.stringify(err)}`)
 					console.log(`redPacket API请求失败，请检查网路重试`)
 				} else {
 					if (data) {
-						data = JSON.parse(data).data;
+						data = JSON.parse(data);
 						$.jxRed = 0,
 						$.jsRed = 0,
 						$.jdRed = 0,
@@ -1383,35 +1379,35 @@ function redPacket() {
 						let t = new Date();
 						t.setDate(t.getDate() + 1);
 						t.setHours(0, 0, 0, 0);
-						t = parseInt((t - 1) / 1000);
-						//console.log(JSON.stringify(data.useRedInfo.redList))
-						for (let vo of data.useRedInfo.redList || []) {
-						    if (vo.limitStr) {								
-						        if (vo.limitStr.includes("京喜") && !vo.limitStr.includes("特价")) {
+						t = parseInt((t - 1) / 1000)*1000;
+						
+						for (let vo of data.hongBaoList || []) {
+						    if (vo.orgLimitStr) {								
+						        if (vo.orgLimitStr.includes("京喜") && !vo.orgLimitStr.includes("特价")) {
 						            $.jxRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jxRedExpire += parseFloat(vo.balance)									
 						            }
 									continue;	
-						        } else if (vo.limitStr.includes("购物小程序")) {
+						        } else if (vo.orgLimitStr.includes("购物小程序")) {
 						            $.jdwxRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jdwxRedExpire += parseFloat(vo.balance)
 						            }
 									continue;	
-						        } else if (vo.limitStr.includes("京东商城")) {
+						        } else if (vo.orgLimitStr.includes("京东商城")) {
 						            $.jdRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jdRedExpire += parseFloat(vo.balance)
 						            }
 									continue;	
-						        } else if (vo.limitStr.includes("极速") || vo.limitStr.includes("京东特价") || vo.limitStr.includes("京喜特价")) {
+						        } else if (vo.orgLimitStr.includes("极速") || vo.orgLimitStr.includes("京东特价") || vo.orgLimitStr.includes("京喜特价")) {
 						            $.jsRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jsRedExpire += parseFloat(vo.balance)
 						            }
 									continue;	
-						        } else if (vo.limitStr && vo.limitStr.includes("京东健康")) {
+						        } else if (vo.orgLimitStr && vo.orgLimitStr.includes("京东健康")) {
 						            $.jdhRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jdhRedExpire += parseFloat(vo.balance)
@@ -1424,28 +1420,59 @@ function redPacket() {
 						        $.jdGeneralRedExpire += parseFloat(vo.balance)
 						    }
 						}
-				
+						
+						$.balance = ($.jxRed+$.jsRed+$.jdRed +$.jdhRed+$.jdwxRed+$.jdGeneralRed).toFixed(2);
 						$.jxRed = $.jxRed.toFixed(2);
 						$.jsRed = $.jsRed.toFixed(2);
 						$.jdRed = $.jdRed.toFixed(2);						
 						$.jdhRed = $.jdhRed.toFixed(2);
 						$.jdwxRed = $.jdwxRed.toFixed(2);
-						$.jdGeneralRed = $.jdGeneralRed.toFixed(2);
-						$.balance = data.balance;
+						$.jdGeneralRed = $.jdGeneralRed.toFixed(2);						
 						$.expiredBalance = ($.jxRedExpire + $.jsRedExpire + $.jdRedExpire+$.jdhRedExpire+$.jdwxRedExpire+$.jdGeneralRedExpire).toFixed(2);
 						$.message += `【红包总额】${$.balance}(总过期${$.expiredBalance})元 \n`;
-						if ($.jxRed > 0)
-							$.message += `【京喜红包】${$.jxRed}(将过期${$.jxRedExpire.toFixed(2)})元 \n`;
-						if ($.jsRed > 0)
-							$.message += `【京喜特价】${$.jsRed}(将过期${$.jsRedExpire.toFixed(2)})元(原极速版) \n`;
-						if ($.jdRed > 0)
-							$.message += `【京东红包】${$.jdRed}(将过期${$.jdRedExpire.toFixed(2)})元 \n`;
-						if ($.jdhRed > 0)
-							$.message += `【健康红包】${$.jdhRed}(将过期${$.jdhRedExpire.toFixed(2)})元 \n`;
-						if ($.jdwxRed > 0)
-							$.message += `【微信小程序】${$.jdwxRed}(将过期${$.jdwxRedExpire.toFixed(2)})元 \n`;
-						if ($.jdGeneralRed > 0)
-							$.message += `【全平台通用】${$.jdGeneralRed}(将过期${$.jdGeneralRedExpire.toFixed(2)})元 \n`;
+						if ($.jxRed > 0){
+							if($.jxRedExpire>0)
+								$.message += `【京喜红包】${$.jxRed}(将过期${$.jxRedExpire.toFixed(2)})元 \n`;
+							else
+								$.message += `【京喜红包】${$.jxRed}元 \n`;
+						}
+							
+						if ($.jsRed > 0){
+							if($.jsRedExpire>0)
+								$.message += `【京喜特价】${$.jsRed}(将过期${$.jsRedExpire.toFixed(2)})元(原极速版) \n`;
+							else
+								$.message += `【京喜特价】${$.jsRed}元(原极速版) \n`;
+						}
+							
+						if ($.jdRed > 0){
+							if($.jdRedExpire>0)
+								$.message += `【京东红包】${$.jdRed}(将过期${$.jdRedExpire.toFixed(2)})元 \n`;
+							else
+								$.message += `【京东红包】${$.jdRed}元 \n`;
+						}
+							
+						if ($.jdhRed > 0){
+							if($.jdhRedExpire>0)
+								$.message += `【健康红包】${$.jdhRed}(将过期${$.jdhRedExpire.toFixed(2)})元 \n`;
+							else
+								$.message += `【健康红包】${$.jdhRed}元 \n`;
+						}
+							
+						if ($.jdwxRed > 0){
+							if($.jdwxRedExpire>0)
+								$.message += `【微信小程序】${$.jdwxRed}(将过期${$.jdwxRedExpire.toFixed(2)})元 \n`;
+							else
+								$.message += `【微信小程序】${$.jdwxRed}元 \n`;
+						}
+							
+						if ($.jdGeneralRed > 0){
+							if($.jdGeneralRedExpire>0)
+								$.message += `【全平台通用】${$.jdGeneralRed}(将过期${$.jdGeneralRedExpire.toFixed(2)})元 \n`;
+							else
+								$.message += `【全平台通用】${$.jdGeneralRed}元 \n`;
+							
+						}
+							
 					} else {
 						console.log(`京东服务器返回空数据`)
 					}
@@ -2176,6 +2203,73 @@ async function getuserinfo() {
             }
             finally {
                 resolve(data || '');
+            }
+        })
+    })
+}
+function dwappinfo() {
+    let ts = Date.now();
+    let opt = {
+        url: `https://dwapp.jd.com/user/dwSignInfo`,
+        body: JSON.stringify({ "t": ts, "channelSource": "txzs", "encStr": CR.MD5(ts + 'e9c398ffcb2d4824b4d0a703e38yffdd').toString() }),
+        headers: {
+            'Origin': 'https://txsm-m.jd.com',
+            'Content-Type': 'application/json',
+            'User-Agent': $.UA,
+            'Cookie': cookie
+        }
+    }
+    return new Promise(async (resolve) => {
+        $.post(opt, async (err, resp, data) => {
+            let ccc = '';
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(`dwappinfo 请求失败，请检查网路重试`)
+                } else {
+                    data = JSON.parse(data);
+                    if (data.code == 200) {
+                        ccc = data.data.balanceNum;
+                    } else {
+                        console.log(data.msg);
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp);
+            } finally {
+                resolve(ccc);
+            }
+        })
+    })
+}
+function dwappexpire() {
+    let opt = {
+        url: `https://dwapp.jd.com/user/scoreDetail?pageNo=1&pageSize=10&scoreType=16&t=1637`,
+        headers: {
+
+            'User-Agent': $.UA,
+            'Cookie': cookie
+        }
+    }
+    return new Promise(async (resolve) => {
+        $.get(opt, async (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(` API请求失败，请检查网路重试`)
+                } else {
+                    data = JSON.parse(data)
+                    if (data.code == 200) {
+                        data = data.data.userOperateList.length !== 0 ? new Date(data.data.userOperateList[0].time).toLocaleDateString() : '';
+                    } else {
+                        console.log(data.msg);
+						data = '';
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp);
+            } finally {
+                resolve(data);
             }
         })
     })
