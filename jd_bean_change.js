@@ -18,13 +18,13 @@ if ($.isNode() && process.env.BEANCHANGE_BEANDETAILMODE){
 
 const fs = require('fs');
 const CR = require('crypto-js');
+const moment = require("moment");
 let matchtitle="昨日";
 let yesterday="";
 let TodayDate="";
 let startDate="";
 let endDate="";
 try {
-    const moment = require("moment");
     yesterday = moment().subtract(1, 'days').format('YYYY-MM-DD');
     TodayDate = moment().format("YYYY-MM-DD");
     startDate = moment().startOf("month").format("YYYY_MM");
@@ -1055,22 +1055,36 @@ async function Monthbean() {
 async function jdCash() {
 	if (!EnableCash)
 		return;
-	let functionId = "cash_homePage";
-	let sign = await getSignfromNolan(functionId, {});
+    let opt = {
+        url: `https://api.m.jd.com`,
+        body: `functionId=cash_exchange_center&body={"version":"1","channel":"app"}&appid=signed_wh5&client=android&clientVersion=11.8.0&t=${Date.now()}`,
+        headers: {
+            'Host': 'api.m.jd.com',
+            'Origin': 'https://h5.m.jd.com',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': $.UA,
+            'Cookie': cookie
+        }
+    }
 		return new Promise((resolve) => {
-			$.post(apptaskUrl(functionId, sign), async (err, resp, data) => {
+			$.post(opt, async (err, resp, data) => {
 				try {
 					if (err) {
 						console.log(`${JSON.stringify(err)}`)
 						console.log(`jdCash API请求失败，请检查网路重试`)
 					} else {
 						if (safeGet(data)) {
-							data = JSON.parse(data);
-							if (data.code === 0 && data.data.result) {
-								$.jdCash = data.data.result.totalMoney || 0;								
-								return
-							}
-						}
+                            data = JSON.parse(data)
+                            if (data.code == 0) {
+                                if (data.data.bizCode == 0) {
+                                    $.jdCash = data.data.result.userMoney;
+                                } else {
+                                    //console.log(data.data.bizMsg);
+                                }
+                            } else {
+                                //console.log(data.msg)
+                            }
+					    }
 					}
 				} catch (e) {
 					$.logErr(e, resp)
@@ -2130,7 +2144,7 @@ function dwappexpire() {
                 } else {
                     data = JSON.parse(data)
                     if (data.code == 200) {
-                        data = data.data.userOperateList.length !== 0 ? new Date(data.data.userOperateList[0].time).toLocaleDateString() : '';
+                        data = data.data.userOperateList.length !== 0 ? moment(new Date(data.data.userOperateList[0].time)).format('M/D') : '';
                     } else {
                         //console.log(data.msg);
 						data = '';
