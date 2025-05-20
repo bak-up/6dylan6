@@ -14,7 +14,7 @@ ql repo https://js.okyago.com/https://github.com/6dylan6/jdpro.git "jd_|jx_|jddj
 ```
 
 
-国外机：
+国外机（国外ip有限制可能有些任务不能正常运行）：
 
 ```
 ql repo https://github.com/6dylan6/jdpro.git "jd_|jx_|jddj_" "backUp" "^jd[^_]|USER|JD|function|sendNotify|utils"
@@ -96,7 +96,7 @@ AUTOCFG='true' 自动配置sendNotify文件到deps目录
 
 代理API模式部分支持
 
-DY_PROXY='URL1@URL2' 多个@分割
+DY_PROXY='URL1#URL2' 多个#分割
 
 PERMIT_API='test' 需要走API代理的js关键词，多个&分割，可不设置，支持的js都会走
 
@@ -104,11 +104,15 @@ DY_PROXY_RENUM='5'  获取IP失败重试次数
 
 DY_PROXY_REDELAY='3' 获取失败重试间隔 单位秒
 
-代理池模式支持全部js脚
+****API代理的意思就是通过url得到随机可用代理，response的格式就是：xxx.xxx.xxx.xxx:xxxx**
+
+代理池模式支持全部js
 
 DP_POOL='http://xxx' 代理池url
 
-PERMIT_JS='farm&plant&opencard' 需要走代理池的js关键词，多个&分割，必须设置
+PERMIT_JS='farm&plant&opencard' 需要走代理池的js关键词，多个&分割（可不设置，如果不设置就是所有的js都会走）
+
+**代理池是一个固定不变的地址，通过这个地址服务，服务会自动转发请求到可用代理，本质上代理池就是一个代理服务器**
 
 禁止指定的pin执行任务：
 
