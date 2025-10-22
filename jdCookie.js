@@ -42,7 +42,7 @@ if (process.env.BANPIN) {
                 //if (process.mainModule.filename.includes(i.split('^')[0])) {
                 if (i.split('@')[0].split('|').filter(x => process.argv[1].includes(x)).length != 0) {
                     let pinarr = i.split('@')[1].split(',');
-                    console.log(`已配置该任务不执行pin: ${JSON.stringify(pinarr)}`);
+                    console.log(`\n❗已配置该任务不执行pin: ${JSON.stringify(pinarr)}`);
                     for (let j of pinarr) {
                         j = decodeURIComponent(j);
                         CookieJDs = CookieJDs.filter(x => !x.includes(encodeURIComponent(j)));
@@ -53,11 +53,43 @@ if (process.env.BANPIN) {
 
         } else {
             let pinarr = banpin.split(',');
-            console.log(`已配置全局不执行pin: ${JSON.stringify(pinarr)}`);
+            console.log(`\n❗已配置全部任务不执行pin: ${JSON.stringify(pinarr)}`);
             for (let i of pinarr) {
-                //j = decodeURIComponent(j);
+                i = decodeURIComponent(i);
                 CookieJDs = CookieJDs.filter(x => !x.includes(encodeURIComponent(i)));
             }
+        }
+    } catch { }
+}
+if (process.env.ALLOWPIN) {
+    try {
+        const pin = process.env.ALLOWPIN;
+        const runck = [];
+        if (pin.includes('@')) {
+            const arr = pin.split('&');
+
+            for (let i of arr) {
+                //if (process.mainModule.filename.includes(i.split('^')[0])) {
+                if (i.split('@')[0].split('|').filter(x => process.argv[1].includes(x)).length != 0) {
+                    let pinarr = i.split('@')[1].split(',');
+                    console.log(`\n❗已配置该任务只执行pin: ${JSON.stringify(pinarr)}`);
+                    for (let j of pinarr) {
+                        j = decodeURIComponent(j);
+                        runck.push(...CookieJDs.filter(x => x.includes(encodeURIComponent(j))));
+                    }
+
+                }
+            }
+        } else {
+            let pinarr = pin.split(',');
+            console.log(`\n❗已配置全部任务只执行pin: ${JSON.stringify(pinarr)}`);
+            for (let i of pinarr) {
+                i = decodeURIComponent(i);
+                runck.push(...CookieJDs.filter(x => x.includes(encodeURIComponent(i))));
+            }
+        }
+        if (runck.length > 0) {
+            CookieJDs = runck
         }
     } catch { }
 }

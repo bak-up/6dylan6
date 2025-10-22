@@ -136,6 +136,16 @@ let GOTIFY_URL = '';
 let GOTIFY_TOKEN = '';
 let GOTIFY_PRIORITY = 0;
 
+// =======================================ntfy 通知设置区域==============================================
+//ntfy_url 填写 ntfy 地址,如https://push.example.de:8080
+//ntfy_token 填写 ntfy 的消息应用token
+//ntfy_priority 填写推送消息优先级,默认为0
+let NTFY_URL = '';
+let NTFY_TOKEN = '';
+let NTFY_TOPIC = '';
+let NTFY_PRIORITY = 3;
+let NTFY_ACTIONS = '';
+
 // =======================================BncrBot通知设置区域==============================================
 //BncrHost 填写BncrHost地址,如https://192.168.31.192:9090
 //BncrToken 填写Bncr的消息应用Token
@@ -199,7 +209,7 @@ let isLogin = false;
 if (process.env.NOTIFY_SHOWNAMETYPE) {
     ShowRemarkType = process.env.NOTIFY_SHOWNAMETYPE;
 }
-async function sendNotify(text, desp, params = {}, author = "\n================================\n好物推荐：https://u.jd.com/WLEVYTM",strsummary="") {
+async function sendNotify(text, desp, params = {}, author = "",strsummary="") {
     console.log(`开始发送通知...`); 
 	
 	//NOTIFY_FILTERBYFILE代码来自Ca11back.
@@ -286,7 +296,7 @@ async function sendNotify(text, desp, params = {}, author = "\n=================
             }
         }
 
-        if (text.indexOf("cookie已失效") != -1 || desp.indexOf("重新登录获取") != -1 || text == "Ninja 运行通知") {
+        if (text.indexOf("已失效") != -1 || desp.indexOf("登录") != -1 || text == "Ninja 运行通知") {
 
             if (Notify_CKTask) {
                 console.log("触发CK脚本，开始执行....");
@@ -304,7 +314,7 @@ async function sendNotify(text, desp, params = {}, author = "\n=================
             }
         }
         if (process.env.NOTIFY_AUTOCHECKCK == "true") {
-            if (text.indexOf("cookie已失效") != -1 || desp.indexOf("重新登录获取") != -1) {
+            if (text.indexOf("已失效") != -1 || desp.indexOf("登录") != -1) {
                 console.log(`捕获CK过期通知，开始尝试处理...`);
                 var strPtPin = await GetPtPin(text);
                 var strdecPtPin = decodeURIComponent(strPtPin);
@@ -390,7 +400,7 @@ async function sendNotify(text, desp, params = {}, author = "\n=================
                                 if (DisableCkBody.code == 200) {
                                     console.log(`京东账号` + strdecPtPin + `已失效,自动禁用成功!\n`);
 
-                                    strNotifyOneTemp = `京东账号: ` + strdecPtPin + ` 已失效,已自动禁用!\n如果要继续挂机，请重新登录账号，账号有效期为30天.`;
+                                    strNotifyOneTemp = `京东账号: ` + strdecPtPin + ` 已失效,已自动禁用!\n如果要继续挂机，请重新登录账号.`;
                                     strNotifyOneTemp += "\n任务标题：" + strtext;
                                     if (strAllNotify)
                                         strNotifyOneTemp += `\n` + strAllNotify;
@@ -401,7 +411,7 @@ async function sendNotify(text, desp, params = {}, author = "\n=================
 
                                 } else {
                                     console.log(`京东账号` + strPtPin + `已失效,自动禁用失败!\n`);
-                                    strNotifyOneTemp = `京东账号: ` + strdecPtPin + ` 已失效!\n如果要继续挂机，请重新登录账号，账号有效期为30天.`;
+                                    strNotifyOneTemp = `京东账号: ` + strdecPtPin + ` 已失效!\n如果要继续挂机，请重新登录账号.`;
                                     strNotifyOneTemp += "\n任务标题：" + strtext;
                                     if (strAllNotify)
                                         strNotifyOneTemp += `\n` + strAllNotify;
@@ -429,7 +439,7 @@ async function sendNotify(text, desp, params = {}, author = "\n=================
             }
         }
 
-        if (strtext.indexOf("cookie已失效") != -1 || strdesp.indexOf("重新登录获取") != -1 || strtext == "Ninja 运行通知") {
+        if (strtext.indexOf("已失效") != -1 || strdesp.indexOf("登录") != -1 || strtext == "Ninja 运行通知") {
             if (Notify_NoCKFalse == "true" && text != "Ninja 运行通知") {
                 console.log(`检测到NOTIFY_NOCKFALSE变量为true,不发送ck失效通知...`);
                 return;
@@ -727,6 +737,21 @@ async function sendNotify(text, desp, params = {}, author = "\n=================
         if (process.env["GOTIFY_PRIORITY" + UseGroupNotify]) {
             GOTIFY_PRIORITY = process.env["GOTIFY_PRIORITY" + UseGroupNotify];
         }
+        if (process.env["NTFY_URL" + UseGroupNotify]) {
+            NTFY_URL = process.env["NTFY_URL" + UseGroupNotify];
+        }
+        if (process.env["NTFY_TOKEN" + UseGroupNotify]) {
+            NTFY_TOKEN = process.env["NTFY_TOKEN" + UseGroupNotify];
+        }
+        if (process.env["NTFY_TOPIC" + UseGroupNotify]) {
+            NTFY_TOPIC = process.env["NTFY_TOPIC" + UseGroupNotify];
+        }
+        if (process.env["NTFY_PRIORITY" + UseGroupNotify]) {
+            NTFY_PRIORITY = process.env["NTFY_PRIORITY" + UseGroupNotify];
+        }
+        if (process.env["NTFY_ACTIONS" + UseGroupNotify]) {
+            NTFY_ACTIONS = process.env["NTFY_ACTIONS" + UseGroupNotify];
+        }
         if (process.env["BncrHost" + UseGroupNotify]) {
             BncrHost = process.env["BncrHost" + UseGroupNotify];
         }
@@ -907,6 +932,7 @@ async function sendNotify(text, desp, params = {}, author = "\n=================
         iGotNotify(text, desp, params), //iGot
         gobotNotify(text, desp), //go-cqhttp
         gotifyNotify(text, desp), //gotify
+        ntfyNotify(text, desp), //ntfy
         bncrNotify(text, desp), //bncr
             wxpusherNotify(text, desp), // wxpusher
             PushDeerNotify(text, desp) //pushdeer推送
@@ -1003,7 +1029,7 @@ function getRemark(strRemark) {
     }
 }
 
-async function sendNotifybyWxPucher(text, desp, PtPin, author = '\n================================\n好物推荐：<a href="https://u.jd.com/WLEVYTM">https://u.jd.com/WLEVYTM</a>', strsummary = "") {
+async function sendNotifybyWxPucher(text, desp, PtPin, author = '', strsummary = "") {
 
     try {
         var Uid = "";
@@ -1238,6 +1264,54 @@ function gotifyNotify(text, desp) {
                         data = JSON.parse(data);
                         if (data.id) {
                             console.log('gotify发送通知消息成功🎉\n');
+                        } else {
+                            console.log(`${data.message}\n`);
+                        }
+                    }
+                } catch (e) {
+                    $.logErr(e, resp);
+                }
+                finally {
+                    resolve();
+                }
+            });
+        } else {
+            resolve();
+        }
+    });
+}
+
+function encodeRFC2047(str) {
+    return `=?UTF-8?B?${Buffer.from(str, 'utf8').toString('base64')}?=`;
+}
+
+function ntfyNotify(text, desp) {
+    console.log('ntfy发送通知\n');
+    console.log('NTFY_URL:', NTFY_URL);
+    console.log('NTFY_TOKEN:', NTFY_TOKEN);
+    console.log('NTFY_TOPIC:', NTFY_TOPIC);
+    return new Promise((resolve) => {
+        if (NTFY_URL && NTFY_TOKEN && NTFY_TOPIC) {
+            const options = {
+                url: `${NTFY_URL}/${NTFY_TOPIC}?auth=${NTFY_TOKEN}`,
+                body: Buffer.from(desp, 'utf-8').toString(),
+                headers: {
+                    'Icon': 'https://user-images.githubusercontent.com/22700758/191449379-f9f56204-0e31-4a16-be5a-331f52696a73.png',
+                    'Title': encodeRFC2047(text),
+                    'Priority': `${NTFY_PRIORITY}`,
+                    'Actions': `${NTFY_ACTIONS}`,
+                }
+            };
+            console.log('ntfy options:', options); // 打印 options 内容
+            $.post(options, (err, resp, data) => {
+                try {
+                    if (err) {
+                        console.log('ntfy发送通知调用API失败！！\n');
+                        console.log(err);
+                    } else {
+                        data = JSON.parse(data);
+                        if (data.id) {
+                            console.log('ntfy发送通知消息成功🎉\n');
                         } else {
                             console.log(`${data.message}\n`);
                         }

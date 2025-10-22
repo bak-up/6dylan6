@@ -9,7 +9,7 @@
 国内机（带代理）：
 
 ```
-ql repo https://js.okyago.com/https://github.com/6dylan6/jdpro.git "jd_|jx_|jddj_" "backUp" "^jd[^_]|USER|JD|function|sendNotify|utils"
+ql repo https://js.googo.win/https://github.com/6dylan6/jdpro.git "jd_|jx_|jddj_" "backUp" "^jd[^_]|USER|JD|function|sendNotify|utils"
 
 ```
 
@@ -114,14 +114,21 @@ PERMIT_JS='farm&plant&opencard' 需要走代理池的js关键词，多个&分割
 
 **代理池是一个固定不变的地址，通过这个地址服务，服务会自动转发请求到可用代理，本质上代理池就是一个代理服务器**
 
-禁止指定的pin执行任务：
+BANPIN 禁止某pin执行任务
 
-多个任务同pin：BANPIN='任务1|任务2@pin1,pin2'
+ALLOWPIN 只执行某pin执行任务
 
-多个任务不同pin：BANPIN='任务1@pin,pin2&任务2@pin2,pin3'
+多个任务同pin：任务1|任务2@pin1,pin2  
 
-不指定任务只写pin  全部任务都不执行该pin：BANPIN='pin1,pin2'
+多个任务不同pin：任务1@pin,pin2&任务2@pin2,pin3
 
+不指定任务只写pin：全部任务
+
+示例 
+
+export BANPIN='draw@pin1,pin2'
+
+export ALLOWPIN='draw@pin1,pin2'
 
 ## 支持的通知方式
 
