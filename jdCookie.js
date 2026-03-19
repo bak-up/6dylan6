@@ -96,7 +96,7 @@ if (process.env.ALLOWPIN) {
 console.log(`\n====================共${CookieJDs.length}个京东账号Cookie=================`);
 console.log(`===========脚本执行时间：${formatdate(new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000 + 8 * 60 * 60 * 1000))}============`);
 console.log('>>>>>>>>>>>>6dylan6提醒您：有问题先更新不行在反馈>>>>>>>>>>>>>\n');
-console.log(`Tips：到客户服务-在线客服发'火爆'，如出滑块就拼一下会解除一些活动火爆\n`);
+console.log(`Tips：‼️青龙2.20.2以下版本不要外网访问，已被爆破可任意登录！必须要外网的就升级青龙吧\n`);
 
 for (let i = 0; i < CookieJDs.length; i++) {
     if (!CookieJDs[i].match(/pt_pin=(.+?);/) || !CookieJDs[i].match(/pt_key=(.+?);/)) console.log(`\n提示:京东cookie 【${CookieJDs[i]}】填写不规范,可能会影响部分脚本正常使用。正确格式为: pt_key=xxx;pt_pin=xxx;（分号;不可少）\n`);

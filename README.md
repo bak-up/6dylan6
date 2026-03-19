@@ -6,7 +6,7 @@
 ### [TG CHANEL](https://t.me/dylan_jdpro)
 
 
-国内机（带代理）：
+国内机（带加速，也不太稳）：
 
 ```
 ql repo https://js.googo.win/https://github.com/6dylan6/jdpro.git "jd_|jx_|jddj_" "backUp" "^jd[^_]|USER|JD|function|sendNotify|utils"
@@ -22,17 +22,14 @@ ql repo https://github.com/6dylan6/jdpro.git "jd_|jx_|jddj_" "backUp" "^jd[^_]|U
 ```
 
 
-线报监控类，[入口](https://github.com/6dylan6/jdm.git)
 
+## 使用
 
-
-## 简要流程
-
-1、部署青龙并登陆，版本不用追新，稳定才好，推荐whyour/qinglong:2.17.9镜像部署。
+1、部署青龙登陆，版本不用追新，稳定才好，推荐部署到内网（不要外网访问，2.20.2以下版本面板会被免密登录偷家，如果必须外网就用最新版本吧）。
 
 2、到订阅管理创建订阅并运行；正确配置[参考](https://github.com/6dylan6/jdpro/issues/22)
 
-3、订阅执行完，到定时任务搜索依赖安装（jd_indeps.sh)任务执行；
+3、订阅执行完，到定时任务搜索依赖安装（jd_indeps)任务执行；
 
 4、到环境变量，创建变量，名称: JD_COOKIE,值：抓的CK（要安全就手抓），多个每行建一个，不要全写在一个；
 
@@ -71,30 +68,18 @@ export NOTIFY_SHOWNAMETYPE="4"    效果是 :  账号名称：备注
 
 3、因为青龙有随机延时（可以在配置文件设置为0，默认300秒），所以涉及准点运行的任务，最后加now，如果是desi或conc不用加也会准时跑。
 
-4、青龙系统通知（新增删除任务、登录等通知），需把通知变量写到config.sh文件，在环境变量里只发脚本运行通知哈。
+4、脚本的通知，需把通知key变量在config.sh文件配置。
 
 5、建议调整任务运行超时时间，青龙默认1小时有些跑不完就被强制结束，config.sh里配置。CommandTimeoutTime="3h"  即改为3小时，根据自己ck数量调整。
 
-6、如需禁止某些CK参加所有活动或某些活动功能，实现重组CK顺序功能，包括随机、优先、轮换、组队、分段等功能，把[task_before](./docker/task_before.sh)文件内容复制到配置管理task_before.sh保存
-
-常用变量举例：
-
-Recombin_CK_Mode="1"  全部顺序随机
-
-Recombin_CK_Mode="2" Recombin_CK_ARG1="15" 假设有100个CK，前15个CK按正常顺序靠前，其余CK随机乱序
-
-Recombin_CK_Mode="3" Recombin_CK_ARG1="5" Recombin_CK_ARG2="5"  假设有100个CK，希望前5个账号始终保持在前部，剩余95个账号按照轮换模式每天轮换5个
-
-其他用法具体参考[文档](https://docs.qq.com/doc/DTXh6QUVjRXJ1TFdN)
-</code></pre>
-</details>
+6、ck掉线，不是常用地ip，短时间内连续获得豆可能就会会触发风控掉线
 
 
 ## 通用环境变量（到配置管理-config.sh里添加变量,export xxx='xxx'格式)
 
 AUTOCFG='true' 自动配置sendNotify文件到deps目录 
 
-代理API模式部分支持
+代理API模式（API代理是通过url接得到随机可用代理ip，格式是：xxx.xxx.xxx.xxx:xxxx）
 
 DY_PROXY='URL1#URL2' 多个#分割
 
@@ -104,15 +89,15 @@ DY_PROXY_RENUM='5'  获取IP失败重试次数
 
 DY_PROXY_REDELAY='3' 获取失败重试间隔 单位秒
 
-****API代理的意思就是通过url得到随机可用代理，response的格式就是：xxx.xxx.xxx.xxx:xxxx**
 
-代理池模式支持全部js
+
+代理池模式（就是一个代理服务器的地址）
 
 DP_POOL='http://xxx' 代理池url
 
 PERMIT_JS='farm&plant&opencard' 需要走代理池的js关键词，多个&分割（可不设置，如果不设置就是所有的js都会走）
 
-**代理池是一个固定不变的地址，通过这个地址服务，服务会自动转发请求到可用代理，本质上代理池就是一个代理服务器**
+
 
 BANPIN 禁止某pin执行任务
 
